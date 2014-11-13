@@ -2,17 +2,15 @@ package com.android.myoproject;
 
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
-import android.support.v4.content.LocalBroadcastManager;
+import android.os.Handler;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -30,19 +28,13 @@ import com.thalmic.myo.Pose;
 import com.thalmic.myo.Quaternion;
 import com.thalmic.myo.Vector3;
 import com.thalmic.myo.XDirection;
-import com.thalmic.myo.internal.ble.BleGatt;
-import com.thalmic.myo.internal.ble.BleManager;
-import com.thalmic.myo.scanner.ScanActivity;
-import com.thalmic.myo.scanner.Scanner;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.net.URISyntaxException;
 import java.util.Collection;
 
 import api.api.impl.InvalidCredentialsException;
-import api.api.model.Playlist;
 import api.api.model.Playlists;
 import api.api.model.QueryResponse;
 import api.api.model.QueryResults;
@@ -70,6 +62,14 @@ public class MainActivity extends Activity {
     private XDirection mXDirection = XDirection.UNKNOWN;
 
     private static float ROLL_THRESHOLD = 1.3f;
+    private static int BLOCK_TIME = 3000;
+
+    private boolean blockEverything = false;
+    private double referenceRoll = 0;
+    private double currentRoll = 0;
+    private boolean fistMade = false;
+
+    private Myo currentMyo;
 
     private DeviceListener listener = new AbstractDeviceListener() {
 
@@ -95,6 +95,7 @@ public class MainActivity extends Activity {
             myo.vibrate(Myo.VibrationType.SHORT);
             myo.vibrate(Myo.VibrationType.SHORT);
             Toast.makeText(MainActivity.this, "Arm Detected", Toast.LENGTH_SHORT).show();
+            unlocked = false;
         }
 
         @Override
@@ -102,6 +103,7 @@ public class MainActivity extends Activity {
             mArm = Arm.UNKNOWN;
             mXDirection = XDirection.UNKNOWN;
             currentMyo = null;
+            unlocked = false;
         }
 
         @Override
@@ -128,7 +130,6 @@ public class MainActivity extends Activity {
                 if (subtractive > ROLL_THRESHOLD) {
                     volUp();
                     referenceRoll = currentRoll;
-
                 } else if (subtractive < -ROLL_THRESHOLD) {
                     volDown();
                     referenceRoll = currentRoll;
@@ -162,12 +163,6 @@ public class MainActivity extends Activity {
     private Button prev;
     private Button next;
 
-    private double referenceRoll = 0;
-    private double currentRoll = 0;
-    private boolean fistMade = false;
-
-    private Myo currentMyo;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -189,11 +184,10 @@ public class MainActivity extends Activity {
             @Override
             public void onClick(View v) {
                 onScanActionSelected();
-//                Hub.getInstance().pairWithAnyMyo();
             }
         });
 
-        hub.pairWithAnyMyo();
+//        hub.pairWithAnyMyo();
 
         audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
 
@@ -208,14 +202,12 @@ public class MainActivity extends Activity {
                     playOrPause();
                 }
             });
-
             prev.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     goToPrevSong();
                 }
             });
-
             next.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -280,7 +272,7 @@ public class MainActivity extends Activity {
                 }
                 break;
             case FIST:
-                if (!fistMade) {
+                if (unlocked && !fistMade) {
                     fistMade = true;
                 }
                 break;
@@ -288,10 +280,7 @@ public class MainActivity extends Activity {
                 resetFist();
                 break;
             case THUMB_TO_PINKY:
-                currentMyo.vibrate(Myo.VibrationType.SHORT);
-                currentMyo.vibrate(Myo.VibrationType.SHORT);
-                unlocked = !unlocked;
-                Toast.makeText(this, unlocked ? "Unlocked" : "Locked", Toast.LENGTH_SHORT).show();
+                toggleDeviceLock();
                 break;
             case WAVE_IN:
                 if (unlocked) {
@@ -309,6 +298,24 @@ public class MainActivity extends Activity {
                 break;
             default:
                 break;
+        }
+    }
+
+    private void toggleDeviceLock() {
+        if (!blockEverything) {
+            unlocked = !unlocked;
+            blockEverything = true;
+
+            currentMyo.vibrate(Myo.VibrationType.SHORT);
+            currentMyo.vibrate(Myo.VibrationType.SHORT);
+
+            Toast.makeText(this, unlocked ? "Unlocked" : "Locked", Toast.LENGTH_SHORT).show();
+            new Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    blockEverything = false;
+                }
+            }, BLOCK_TIME);
         }
     }
 
