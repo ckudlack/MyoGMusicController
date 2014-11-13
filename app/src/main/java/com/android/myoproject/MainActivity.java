@@ -62,12 +62,14 @@ public class MainActivity extends Activity {
     private XDirection mXDirection = XDirection.UNKNOWN;
 
     private static float ROLL_THRESHOLD = 1.3f;
-    private static int BLOCK_TIME = 3000;
+    private static float UNLOCK_THRESHOLD = 15;
+    private static int BLOCK_TIME = 2000;
 
     private boolean blockEverything = false;
     private double referenceRoll = 0;
     private double currentRoll = 0;
     private boolean fistMade = false;
+    private boolean lockToggleMode = false;
 
     private Myo currentMyo;
 
@@ -94,8 +96,15 @@ public class MainActivity extends Activity {
             mXDirection = xDirection;
             myo.vibrate(Myo.VibrationType.SHORT);
             myo.vibrate(Myo.VibrationType.SHORT);
+
             Toast.makeText(MainActivity.this, "Arm Detected", Toast.LENGTH_SHORT).show();
+
             unlocked = false;
+            resetFist();
+
+            if (mXDirection == XDirection.TOWARD_ELBOW) {
+                referenceRoll *= -1;
+            }
         }
 
         @Override
@@ -120,18 +129,30 @@ public class MainActivity extends Activity {
             // Adjust roll and pitch for the orientation of the Myo on the arm.
             if (mXDirection == XDirection.TOWARD_ELBOW) {
                 roll *= -1;
-                pitch *= -1;
             }
 
             currentRoll = roll;
 
+            Log.d("d", "Roll: " + roll);
+
             if (fistMade) {
                 double subtractive = currentRoll - referenceRoll;
                 if (subtractive > ROLL_THRESHOLD) {
+//                    Log.d("h", "+");
                     volUp();
                     referenceRoll = currentRoll;
                 } else if (subtractive < -ROLL_THRESHOLD) {
+//                    Log.d("h", "-");
                     volDown();
+                    referenceRoll = currentRoll;
+                }
+            }
+
+            if (lockToggleMode) {
+                double subtractive = currentRoll - referenceRoll;
+
+                if (subtractive > UNLOCK_THRESHOLD) {
+                    toggleLock();
                     referenceRoll = currentRoll;
                 }
             }
@@ -280,7 +301,7 @@ public class MainActivity extends Activity {
                 resetFist();
                 break;
             case THUMB_TO_PINKY:
-                toggleDeviceLock();
+                setToUnlockMode();
                 break;
             case WAVE_IN:
                 if (unlocked) {
@@ -301,22 +322,38 @@ public class MainActivity extends Activity {
         }
     }
 
-    private void toggleDeviceLock() {
-        if (!blockEverything) {
-            unlocked = !unlocked;
-            blockEverything = true;
+    private void setToUnlockMode() {
+        if (!blockEverything && !lockToggleMode) {
+            lockToggleMode = true;
 
-            currentMyo.vibrate(Myo.VibrationType.SHORT);
-            currentMyo.vibrate(Myo.VibrationType.SHORT);
-
-            Toast.makeText(this, unlocked ? "Unlocked" : "Locked", Toast.LENGTH_SHORT).show();
             new Handler().postDelayed(new Runnable() {
                 @Override
                 public void run() {
-                    blockEverything = false;
+                    lockToggleMode = false;
                 }
-            }, BLOCK_TIME);
+            }, 500);
         }
+    }
+
+    private void toggleLock() {
+        // Unlocked when the user does the THUMB_TO_PINKY gesture and a clockwise hand rotation within 500ms
+
+        lockToggleMode = false;
+        unlocked = !unlocked;
+
+        blockEverything = true;
+
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                blockEverything = false;
+            }
+        }, BLOCK_TIME);
+
+        currentMyo.vibrate(Myo.VibrationType.SHORT);
+        currentMyo.vibrate(Myo.VibrationType.SHORT);
+
+        Toast.makeText(this, unlocked ? "Unlocked" : "Locked", Toast.LENGTH_SHORT).show();
     }
 
     private void resetFist() {
@@ -454,15 +491,6 @@ public class MainActivity extends Activity {
     //================================================================================
     // Google Play Music
     //================================================================================
-
-    public static final String SERVICECMD = "com.android.music.musicservicecommand";
-    public static final String CMDNAME = "command";
-    public static final String CMDTOGGLEPAUSE = "togglepause";
-    public static final String CMDSTOP = "stop";
-    public static final String CMDPAUSE = "pause";
-    public static final String CMDPLAY = "play";
-    public static final String CMDPREVIOUS = "previous";
-    public static final String CMDNEXT = "next";
 
     QueryResponse response;
 
