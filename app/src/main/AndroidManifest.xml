@@ -22,6 +22,8 @@
             </intent-filter>
         </receiver>
 
+        <receiver android:name=".background.ButtonReceiver"/>
+
         <activity
             android:name="com.android.myoproject.activities.MainActivity"
             android:label="@string/app_name" >

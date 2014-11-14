@@ -16,4 +16,9 @@ public class BusEvent {
             return isPlaying;
         }
     }
+
+    public static class DestroyServiceEvent extends BusEvent {
+        public DestroyServiceEvent() {
+        }
+    }
 }

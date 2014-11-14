@@ -1,5 +1,7 @@
 package com.android.myoproject.background;
 
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
@@ -66,14 +68,23 @@ public class MusicControllerService extends Service implements DeviceCallback {
         hub.addListener(deviceListener);
 //        hub.pairWithAnyMyo();
 
+        //Create an Intent for the BroadcastReceiver
+        Intent buttonIntent = new Intent(this, ButtonReceiver.class);
+        buttonIntent.putExtra("notificationId", NOTIFICATION_ID);
+
+        //Create the PendingIntent
+        PendingIntent btPendingIntent = PendingIntent.getBroadcast(this, 0, buttonIntent, 0);
+
         NotificationCompat.Builder builder =
                 new NotificationCompat.Builder(this)
                         .setContentTitle("Myo")
                         .setOngoing(true)
                         .setSmallIcon(R.drawable.ic_launcher)
-                                //.setContent(setupRemoteViews(nextPendingIntent))
-                        .setContentText("Running");
-        startForeground(NOTIFICATION_ID, builder.build());
+                        .setContentText("Running")
+                        .addAction(R.drawable.ic_launcher, "My Action", btPendingIntent);
+
+        NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        manager.notify(NOTIFICATION_ID, builder.build());
     }
 
     @Override
@@ -237,6 +248,11 @@ public class MusicControllerService extends Service implements DeviceCallback {
     @Subscribe
     public void playbackUpdated(BusEvent.PlaybackUpdatedEvent event) {
         this.isPlaying = event.isPlaying();
+    }
+
+    @Subscribe
+    public void destroyServiceEvent(BusEvent.DestroyServiceEvent event) {
+        this.stopSelf();
     }
 
 }
