@@ -1,8 +1,11 @@
-package com.android.myoproject;
+package com.android.myoproject.background;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+
+import com.android.myoproject.BusEvent;
+import com.android.myoproject.application.MyoApplication;
 
 public class MessageReceiver extends BroadcastReceiver {
 

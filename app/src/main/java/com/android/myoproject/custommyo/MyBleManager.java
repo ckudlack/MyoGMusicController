@@ -1,4 +1,4 @@
-package com.android.myoproject;
+package com.android.myoproject.custommyo;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -6,11 +6,11 @@ import android.bluetooth.BluetoothManager;
 import android.content.Context;
 import android.util.Log;
 
+import com.android.myoproject.callbacks.CustomBleManagerInterface;
 import com.thalmic.myo.internal.ble.Address;
 import com.thalmic.myo.internal.ble.BleGatt;
 import com.thalmic.myo.internal.ble.BleManager;
 //import com.thalmic.myo.internal.ble.JBBluetoothLeController;
-import com.thalmic.myo.internal.util.ByteUtil;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -18,7 +18,6 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Objects;
 import java.util.UUID;
 
 public class MyBleManager implements CustomBleManagerInterface {

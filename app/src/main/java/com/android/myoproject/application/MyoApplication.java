@@ -1,4 +1,4 @@
-package com.android.myoproject;
+package com.android.myoproject.application;
 
 import android.app.Application;
 

@@ -1,4 +1,4 @@
-package com.android.myoproject;
+package com.android.myoproject.activities;
 
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
@@ -18,6 +18,9 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
+import com.android.myoproject.BusEvent;
+import com.android.myoproject.application.MyoApplication;
+import com.android.myoproject.R;
 import com.squareup.otto.Subscribe;
 import com.thalmic.myo.AbstractDeviceListener;
 import com.thalmic.myo.Arm;
@@ -133,7 +136,7 @@ public class MainActivity extends Activity {
 
             currentRoll = roll;
 
-            Log.d("d", "Roll: " + roll);
+//            Log.d("d", "Roll: " + roll);
 
             if (fistMade) {
                 double subtractive = currentRoll - referenceRoll;
@@ -189,34 +192,35 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        MyoApplication.bus.register(this);
+        if (TEST_MODE) {
+            MyoApplication.bus.register(this);
 
-        Hub hub = Hub.getInstance();
-        if (!hub.init(this, getPackageName())) {
-            Log.e("TAG", "Could not init Hub");
-            finish();
-            return;
-        }
-
-        hub.addListener(listener);
-
-        Button b = (Button) findViewById(R.id.scan);
-        b.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                onScanActionSelected();
+            Hub hub = Hub.getInstance();
+            if (!hub.init(this, getPackageName())) {
+                Log.e("TAG", "Could not init Hub");
+                finish();
+                return;
             }
-        });
+
+            hub.addListener(listener);
+
+            Button b = (Button) findViewById(R.id.scan);
+            b.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    onScanActionSelected();
+                }
+            });
 
 //        hub.pairWithAnyMyo();
 
-        audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+            audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
 
-        playPause = (Button) findViewById(R.id.play_pause);
-        next = (Button) findViewById(R.id.next);
-        prev = (Button) findViewById(R.id.prev);
+            playPause = (Button) findViewById(R.id.play_pause);
+            next = (Button) findViewById(R.id.next);
+            prev = (Button) findViewById(R.id.prev);
 
-        if (TEST_MODE) {
+
             playPause.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -235,6 +239,9 @@ public class MainActivity extends Activity {
                     goToNextSong();
                 }
             });
+        } else {
+            startActivity(new Intent(this, StartServiceActivity.class));
+            finish();
         }
     }
 
@@ -403,15 +410,17 @@ public class MainActivity extends Activity {
 
     @Override
     protected void onDestroy() {
-        super.onDestroy();
-        // We don't want any callbacks when the Activity is gone, so unregister the listener.
-        Hub.getInstance().removeListener(listener);
-        if (isFinishing()) {
-            // The Activity is finishing, so shutdown the Hub. This will disconnect from the Myo.
-            Hub.getInstance().shutdown();
-        }
+        if (TEST_MODE) {
+            // We don't want any callbacks when the Activity is gone, so unregister the listener.
+            Hub.getInstance().removeListener(listener);
+            if (isFinishing()) {
+                // The Activity is finishing, so shutdown the Hub. This will disconnect from the Myo.
+                Hub.getInstance().shutdown();
+            }
 
-        MyoApplication.bus.unregister(this);
+            MyoApplication.bus.unregister(this);
+        }
+        super.onDestroy();
     }
 
     @Override

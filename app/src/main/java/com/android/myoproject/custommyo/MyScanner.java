@@ -1,6 +1,5 @@
-package com.android.myoproject;
+package com.android.myoproject.custommyo;
 
-import android.content.Context;
 import android.os.Handler;
 import android.util.Log;
 
@@ -15,7 +14,6 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Objects;
 import java.util.UUID;
 
 

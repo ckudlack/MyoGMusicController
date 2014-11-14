@@ -1,14 +1,8 @@
-package com.android.myoproject;
+package com.android.myoproject.callbacks;
 
-import com.thalmic.myo.internal.ble.Address;
 import com.thalmic.myo.internal.ble.BleGatt;
 import com.thalmic.myo.internal.ble.BleManager;
 
-import java.util.UUID;
-
-/**
- * Created by Chris on 11/11/14.
- */
 public interface CustomBleManagerInterface extends BleManager {
 
     public abstract boolean isBluetoothSupported();
