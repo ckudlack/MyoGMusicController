@@ -57,7 +57,7 @@ public class MainActivity extends Activity {
 
     private AudioManager audioManager;
 
-    private static boolean TEST_MODE = true;
+    private static boolean TEST_MODE = false;
 
     private boolean isPlaying = false;
 

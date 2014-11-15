@@ -15,6 +15,7 @@ public class StartServiceActivity extends Activity {
         setContentView(R.layout.activity_start_service);
 
         startService(new Intent(this, MusicControllerService.class));
+        finish();
     }
 
 }

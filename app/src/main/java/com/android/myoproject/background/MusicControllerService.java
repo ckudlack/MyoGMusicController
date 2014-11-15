@@ -66,7 +66,7 @@ public class MusicControllerService extends Service implements DeviceCallback {
         }
 
         hub.addListener(deviceListener);
-//        hub.pairWithAnyMyo();
+        hub.pairWithAnyMyo();
 
         //Create an Intent for the BroadcastReceiver
         Intent buttonIntent = new Intent(this, ButtonReceiver.class);
@@ -81,7 +81,7 @@ public class MusicControllerService extends Service implements DeviceCallback {
                         .setOngoing(true)
                         .setSmallIcon(R.drawable.ic_launcher)
                         .setContentText("Running")
-                        .addAction(R.drawable.ic_launcher, "My Action", btPendingIntent);
+                        .addAction(R.drawable.ic_action_cancel, "Close", btPendingIntent);
 
         NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         manager.notify(NOTIFICATION_ID, builder.build());
@@ -248,11 +248,13 @@ public class MusicControllerService extends Service implements DeviceCallback {
     @Subscribe
     public void playbackUpdated(BusEvent.PlaybackUpdatedEvent event) {
         this.isPlaying = event.isPlaying();
+        Log.d("TAG", "Got player callback");
     }
 
     @Subscribe
     public void destroyServiceEvent(BusEvent.DestroyServiceEvent event) {
         this.stopSelf();
+        Log.d("TAG", "Stop service");
     }
 
 }
