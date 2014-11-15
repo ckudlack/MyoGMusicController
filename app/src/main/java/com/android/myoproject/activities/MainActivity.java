@@ -5,11 +5,7 @@ import android.bluetooth.BluetoothAdapter;
 import android.content.Context;
 import android.content.Intent;
 import android.media.AudioManager;
-import android.media.MediaPlayer;
-import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.Handler;
 import android.util.Log;
 import android.view.Menu;
@@ -34,32 +30,17 @@ import com.thalmic.myo.XDirection;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URISyntaxException;
-import java.util.Collection;
-
-import api.api.impl.InvalidCredentialsException;
-import api.api.model.Playlists;
-import api.api.model.QueryResponse;
-import api.api.model.QueryResults;
-import api.api.model.Song;
-
 
 public class MainActivity extends Activity {
 
     // This code will be returned in onActivityResult() when the enable Bluetooth activity exits.
     private static final int REQUEST_ENABLE_BT = 1;
-    public static final String PLAYSTATE_CHANGED = "com.android.music.playstatechanged";
-
-    private Playlists playlists;
-    private MediaPlayer player;
 
     boolean unlocked = false;
 
     private AudioManager audioManager;
 
     private static boolean TEST_MODE = false;
-
-    private boolean isPlaying = false;
 
     private Arm mArm = Arm.UNKNOWN;
     private XDirection mXDirection = XDirection.UNKNOWN;
@@ -437,38 +418,6 @@ public class MainActivity extends Activity {
         super.onActivityResult(requestCode, resultCode, data);
     }
 
-    private void getMp3AndPlay() {
-        File downloadsFolder = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
-
-        files = downloadsFolder.listFiles();
-
-        Toast.makeText(this, "Files: " + files.length, Toast.LENGTH_LONG).show();
-
-        player = new MediaPlayer();
-
-        try {
-            player.setDataSource(this, Uri.parse(files[fileIndex].getPath()));
-        } catch (IOException e) {
-            Log.e("SET DATA", e.getMessage());
-        }
-
-        try {
-            player.prepare();
-        } catch (IOException e) {
-            Log.e("PREPARE", e.getMessage());
-        }
-
-        player.start();
-
-        player.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-            @Override
-            public void onCompletion(MediaPlayer mp) {
-                goToNextSong();
-
-            }
-        });
-    }
-
     private void goToNextSong() {
         Intent next = new Intent("com.android.music.musicservicecommand");
         next.putExtra("command", mArm == Arm.RIGHT ? "next" : "previous");
@@ -483,7 +432,7 @@ public class MainActivity extends Activity {
 
     private void playOrPause() {
         Intent pause = new Intent("com.android.music.musicservicecommand");
-        pause.putExtra("command", isPlaying ? "pause" : "play");
+        pause.putExtra("command", "togglepause");
         sendBroadcast(pause);
     }
 
@@ -498,42 +447,5 @@ public class MainActivity extends Activity {
 
     @Subscribe
     public void playbackUpdated(BusEvent.PlaybackUpdatedEvent event) {
-        this.isPlaying = event.isPlaying();
-    }
-
-    //================================================================================
-    // Google Play Music
-    //================================================================================
-
-    QueryResponse response;
-
-    private void getGoogleMusic() {
-        AsyncTask task = new AsyncTask() {
-            @Override
-            protected Object doInBackground(Object[] params) {
-                try {
-                    MyoApplication.getAPI().login("chris.kudlack@gmail.com", "");
-                    response = MyoApplication.getAPI().search("the");
-                } catch (IOException e) {
-                    e.printStackTrace();
-                } catch (URISyntaxException e) {
-                    e.printStackTrace();
-                } catch (InvalidCredentialsException e) {
-                    e.printStackTrace();
-                }
-
-                /*String size = String.valueOf(playlists.getPlaylists().size());
-                Log.d("PLAYLISTS", size);
-                Toast.makeText(MainActivity.this, "Playlist size: " + size, Toast.LENGTH_LONG).show();*/
-
-                QueryResults results = response.getResults();
-                Collection<Song> songs = results.getSongs();
-
-
-                return null;
-            }
-        };
-
-        task.execute();
     }
 }

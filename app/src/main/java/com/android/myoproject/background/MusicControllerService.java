@@ -38,8 +38,6 @@ public class MusicControllerService extends Service implements DeviceCallback {
     private boolean unlocked = false;
 
     private Myo currentMyo;
-    private boolean isPlaying = false;
-
 
     private AudioManager audioManager;
     private MyoDeviceListener deviceListener;
@@ -241,20 +239,23 @@ public class MusicControllerService extends Service implements DeviceCallback {
 
     private void playOrPause() {
         Intent pause = new Intent("com.android.music.musicservicecommand");
-        pause.putExtra("command", isPlaying ? "pause" : "play");
+        pause.putExtra("command", "togglepause");
         sendBroadcast(pause);
     }
 
     @Subscribe
     public void playbackUpdated(BusEvent.PlaybackUpdatedEvent event) {
-        this.isPlaying = event.isPlaying();
         Log.d("TAG", "Got player callback");
     }
 
     @Subscribe
     public void destroyServiceEvent(BusEvent.DestroyServiceEvent event) {
-        this.stopSelf();
-        Log.d("TAG", "Stop service");
-    }
+        Hub.getInstance().removeListener(deviceListener);
+        // The Service is finishing, so shutdown the Hub. This will disconnect from the Myo.
+        Hub.getInstance().shutdown();
+        MyoApplication.bus.unregister(this);
 
+        this.stopSelf();
+        Log.d("TAG", "Service stopped");
+    }
 }

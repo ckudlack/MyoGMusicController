@@ -7,9 +7,9 @@ import android.content.Intent;
 import com.android.myoproject.BusEvent;
 import com.android.myoproject.application.MyoApplication;
 
-public class MessageReceiver extends BroadcastReceiver {
+public class PlaybackStateReceiver extends BroadcastReceiver {
 
-    public MessageReceiver() {
+    public PlaybackStateReceiver() {
     }
 
     @Override
