@@ -66,7 +66,7 @@ public class MusicControllerService extends Service implements DeviceCallback {
         }
 
         hub.addListener(deviceListener);
-        hub.pairWithAnyMyo();
+        hub.attachToAdjacentMyo();
 
         //Create an Intent for the BroadcastReceiver
         Intent buttonIntent = new Intent(this, ButtonReceiver.class);

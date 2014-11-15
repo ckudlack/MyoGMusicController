@@ -16,7 +16,7 @@ allprojects {
     repositories {
         jcenter()
         maven {
-            url '/Users/Chris/Desktop/Dev/Other/myo-android-sdk-0.6.0/myorepository'
+            url '/Users/Chris/Desktop/Dev/Other/myo-android-sdk-0.8.0/myorepository'
         }
     }
 }

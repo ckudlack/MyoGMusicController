@@ -79,21 +79,17 @@ public class MainActivity extends Activity {
     private DeviceListener listener = new AbstractDeviceListener() {
 
         @Override
-        public void onPair(Myo myo, long timestamp) {
-            Toast.makeText(MainActivity.this, "Paired", Toast.LENGTH_SHORT).show();
+        public void onAttach(Myo myo, long timestamp) {
+            Toast.makeText(MainActivity.this, "Attached", Toast.LENGTH_SHORT).show();
         }
 
         @Override
-        public void onConnect(Myo myo, long timestamp) {
-            Toast.makeText(MainActivity.this, "Connected", Toast.LENGTH_SHORT).show();
+        public void onDetach(Myo myo, long timestamp) {
+            super.onDetach(myo, timestamp);
         }
 
         @Override
-        public void onDisconnect(Myo myo, long timestamp) {
-        }
-
-        @Override
-        public void onArmRecognized(Myo myo, long timestamp, Arm arm, XDirection xDirection) {
+        public void onArmSync(Myo myo, long timestamp, Arm arm, XDirection xDirection) {
             currentMyo = myo;
             mArm = arm;
             mXDirection = xDirection;
@@ -111,11 +107,21 @@ public class MainActivity extends Activity {
         }
 
         @Override
-        public void onArmLost(Myo myo, long timestamp) {
+        public void onArmUnsync(Myo myo, long timestamp) {
             mArm = Arm.UNKNOWN;
             mXDirection = XDirection.UNKNOWN;
             currentMyo = null;
             unlocked = false;
+        }
+
+        @Override
+        public void onConnect(Myo myo, long timestamp) {
+            Toast.makeText(MainActivity.this, "Connected", Toast.LENGTH_SHORT).show();
+        }
+
+        @Override
+        public void onDisconnect(Myo myo, long timestamp) {
+            Toast.makeText(MainActivity.this, "Disconnected", Toast.LENGTH_SHORT).show();
         }
 
         @Override
@@ -212,8 +218,6 @@ public class MainActivity extends Activity {
                 }
             });
 
-//        hub.pairWithAnyMyo();
-
             audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
 
             playPause = (Button) findViewById(R.id.play_pause);
@@ -286,7 +290,7 @@ public class MainActivity extends Activity {
 //        startActivity(intent);
 
         if (Hub.getInstance().getConnectedDevices().size() == 0) {
-            Hub.getInstance().pairWithAnyMyo();
+            Hub.getInstance().attachToAdjacentMyo();
         }
     }
 

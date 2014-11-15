@@ -25,21 +25,15 @@ public class MyoDeviceListener extends AbstractDeviceListener {
     }
 
     @Override
-    public void onPair(Myo myo, long timestamp) {
-        Toast.makeText(context, "Paired", Toast.LENGTH_SHORT).show();
+    public void onArmUnsync(Myo myo, long timestamp) {
+        mArm = Arm.UNKNOWN;
+        mXDirection = XDirection.UNKNOWN;
+        callback.setCurrentMyo(null);
+        callback.toggleUnlocked(false);
     }
 
     @Override
-    public void onConnect(Myo myo, long timestamp) {
-        Toast.makeText(context, "Connected", Toast.LENGTH_SHORT).show();
-    }
-
-    @Override
-    public void onDisconnect(Myo myo, long timestamp) {
-    }
-
-    @Override
-    public void onArmRecognized(Myo myo, long timestamp, Arm arm, XDirection xDirection) {
+    public void onArmSync(Myo myo, long timestamp, Arm arm, XDirection xDirection) {
         callback.setCurrentMyo(myo);
         mArm = arm;
         mXDirection = xDirection;
@@ -56,11 +50,21 @@ public class MyoDeviceListener extends AbstractDeviceListener {
     }
 
     @Override
-    public void onArmLost(Myo myo, long timestamp) {
-        mArm = Arm.UNKNOWN;
-        mXDirection = XDirection.UNKNOWN;
-        callback.setCurrentMyo(null);
-        callback.toggleUnlocked(false);
+    public void onDetach(Myo myo, long timestamp) {
+    }
+
+    @Override
+    public void onAttach(Myo myo, long timestamp) {
+        Toast.makeText(context, "Paired", Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onConnect(Myo myo, long timestamp) {
+        Toast.makeText(context, "Connected", Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onDisconnect(Myo myo, long timestamp) {
     }
 
     @Override
