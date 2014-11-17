@@ -17,6 +17,8 @@ import android.widget.Toast;
 import com.android.myoproject.BusEvent;
 import com.android.myoproject.application.MyoApplication;
 import com.android.myoproject.R;
+import com.google.sample.castcompanionlibrary.cast.BaseCastManager;
+import com.google.sample.castcompanionlibrary.cast.VideoCastManager;
 import com.squareup.otto.Subscribe;
 import com.thalmic.myo.AbstractDeviceListener;
 import com.thalmic.myo.Arm;
@@ -447,5 +449,12 @@ public class MainActivity extends Activity {
 
     @Subscribe
     public void playbackUpdated(BusEvent.PlaybackUpdatedEvent event) {
+    }
+
+    private void handleCast() {
+        VideoCastManager castManager;
+        castManager = VideoCastManager.initialize(this, "appId", null, null);
+        castManager.enableFeatures(BaseCastManager.FEATURE_LOCKSCREEN);
+        castManager.updateVolume(1);
     }
 }

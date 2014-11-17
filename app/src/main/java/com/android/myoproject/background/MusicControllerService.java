@@ -17,6 +17,10 @@ import com.android.myoproject.R;
 import com.android.myoproject.custommyo.MyoDeviceListener;
 import com.android.myoproject.application.MyoApplication;
 import com.android.myoproject.callbacks.DeviceCallback;
+import com.google.android.gms.cast.Cast;
+import com.google.sample.castcompanionlibrary.cast.BaseCastManager;
+import com.google.sample.castcompanionlibrary.cast.VideoCastManager;
+import com.google.sample.castcompanionlibrary.cast.exceptions.CastException;
 import com.squareup.otto.Subscribe;
 import com.thalmic.myo.Arm;
 import com.thalmic.myo.Hub;
@@ -83,6 +87,15 @@ public class MusicControllerService extends Service implements DeviceCallback {
 
         NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         manager.notify(NOTIFICATION_ID, builder.build());
+
+//        handleCast();
+    }
+
+    private void handleCast() {
+        VideoCastManager castManager;
+        castManager = VideoCastManager.initialize(this, "appId", null, null);
+        castManager.enableFeatures(BaseCastManager.FEATURE_LOCKSCREEN);
+        castManager.updateVolume(1);
     }
 
     @Override
@@ -92,6 +105,8 @@ public class MusicControllerService extends Service implements DeviceCallback {
         Hub.getInstance().shutdown();
 
         MyoApplication.bus.unregister(this);
+        Log.d("TAG", "Service stopped");
+
         super.onDestroy();
     }
 
@@ -250,12 +265,11 @@ public class MusicControllerService extends Service implements DeviceCallback {
 
     @Subscribe
     public void destroyServiceEvent(BusEvent.DestroyServiceEvent event) {
-        Hub.getInstance().removeListener(deviceListener);
+/*        Hub.getInstance().removeListener(deviceListener);
         // The Service is finishing, so shutdown the Hub. This will disconnect from the Myo.
         Hub.getInstance().shutdown();
-        MyoApplication.bus.unregister(this);
+        MyoApplication.bus.unregister(this);*/
 
         this.stopSelf();
-        Log.d("TAG", "Service stopped");
     }
 }
