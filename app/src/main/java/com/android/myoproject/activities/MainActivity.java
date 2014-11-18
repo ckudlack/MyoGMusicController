@@ -125,16 +125,12 @@ public class MainActivity extends Activity {
 
             currentRoll = roll;
 
-//            Log.d("d", "Roll: " + roll);
-
             if (fistMade) {
                 double subtractive = currentRoll - referenceRoll;
                 if (subtractive > ROLL_THRESHOLD) {
-//                    Log.d("h", "+");
                     volUp();
                     referenceRoll = currentRoll;
                 } else if (subtractive < -ROLL_THRESHOLD) {
-//                    Log.d("h", "-");
                     volDown();
                     referenceRoll = currentRoll;
                 }
@@ -233,45 +229,6 @@ public class MainActivity extends Activity {
     }
 
     private void onScanActionSelected() {
-
-
-/*        try {
-            Field f = Hub.getInstance().getClass().getDeclaredField("mScanner");
-            f.setAccessible(true);
-
-            Field scannedListener = f.getClass().getDeclaredField("mMyoScannedListener");
-            scannedListener.setAccessible(true);
-
-            Field clickedListener = f.getClass().getDeclaredField("mMyoClickedListener");
-            clickedListener.setAccessible(true);
-
-
-
-//            f.set(Hub.getInstance(), new MyScanner());
-        } catch (NoSuchFieldException e) {
-            e.printStackTrace();
-        }*/
-
-
-/*        try {
-            Method m = controller.getClass().getDeclaredMethod("connect", String.class, boolean.class);
-            m.setAccessible(true);
-            retVal = m.invoke(controller, address, autoConnect);
-        } catch (NoSuchMethodException e) {
-            Log.e("A", e.getMessage());
-        } catch (InvocationTargetException e) {
-            Log.e("B", e.getMessage());
-        } catch (IllegalAccessException e) {
-            Log.e("C", e.getMessage());
-        }*/
-
-//        Hub.getInstance().getScanner().setBleManager(new MyBleManager(this));
-
-//        Hub.getInstance().getScanner();
-
-//        Intent intent = new Intent(this, ScanActivity.class);
-//        startActivity(intent);
-
         if (Hub.getInstance().getConnectedDevices().size() == 0) {
             Hub.getInstance().attachToAdjacentMyo();
         }

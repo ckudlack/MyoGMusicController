@@ -14,13 +14,11 @@ import android.widget.Toast;
 
 import com.android.myoproject.BusEvent;
 import com.android.myoproject.R;
-import com.android.myoproject.custommyo.MyoDeviceListener;
 import com.android.myoproject.application.MyoApplication;
 import com.android.myoproject.callbacks.DeviceCallback;
-import com.google.android.gms.cast.Cast;
+import com.android.myoproject.custommyo.MyoDeviceListener;
 import com.google.sample.castcompanionlibrary.cast.BaseCastManager;
 import com.google.sample.castcompanionlibrary.cast.VideoCastManager;
-import com.google.sample.castcompanionlibrary.cast.exceptions.CastException;
 import com.squareup.otto.Subscribe;
 import com.thalmic.myo.Arm;
 import com.thalmic.myo.Hub;
@@ -87,8 +85,6 @@ public class MusicControllerService extends Service implements DeviceCallback {
 
         NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         manager.notify(NOTIFICATION_ID, builder.build());
-
-//        handleCast();
     }
 
     private void handleCast() {
@@ -100,8 +96,8 @@ public class MusicControllerService extends Service implements DeviceCallback {
 
     @Override
     public void onDestroy() {
+        Hub.getInstance().getScanner().stopScanning();
         Hub.getInstance().removeListener(deviceListener);
-        // The Activity is finishing, so shutdown the Hub. This will disconnect from the Myo.
         Hub.getInstance().shutdown();
 
         MyoApplication.bus.unregister(this);
