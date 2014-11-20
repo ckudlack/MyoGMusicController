@@ -216,12 +216,16 @@ public class MusicControllerService extends Service implements DeviceCallback {
 
     @Override
     public void handleRotationCalc(float pitch, float roll, float yaw) {
+        currentRoll = roll;
+        currentPitch = pitch;
+        currentYaw = yaw;
+
         if (fistMade) {
             handleRoll(roll);
         }
 
 //        handlePitch(pitch);
-        handleYaw(yaw);
+//        handleYaw(yaw);
 
         if (lockToggleMode) {
             double subtractive = currentRoll - referenceRoll;
@@ -252,8 +256,6 @@ public class MusicControllerService extends Service implements DeviceCallback {
     }
 
     private void handleRoll(float roll) {
-        currentRoll = roll;
-
         double subtractive = currentRoll - referenceRoll;
         if (subtractive > ROLL_THRESHOLD) {
             volUp();
@@ -265,8 +267,6 @@ public class MusicControllerService extends Service implements DeviceCallback {
     }
 
     private void handlePitch(float pitch) {
-        currentPitch = pitch;
-
         // ARM UP IS NEGATIVE, DOWN IS POSITIVE
 
         double subtractive = currentPitch - referencePitch;
@@ -282,8 +282,6 @@ public class MusicControllerService extends Service implements DeviceCallback {
     }
 
     private void handleYaw(float yaw) {
-        currentYaw = yaw;
-
         // INCREASE LEFT, DECREASE RIGHT
 
         double subtractive = currentYaw - referenceYaw;
