@@ -83,7 +83,7 @@ public class MyoDeviceListener extends AbstractDeviceListener {
             roll *= -1;
         }
 
-        callback.handleRotationCalc(0, roll, 0);
+        callback.handleRotationCalc(pitch, roll, yaw);
     }
 
     @Override

@@ -220,6 +220,9 @@ public class MusicControllerService extends Service implements DeviceCallback {
             handleRoll(roll);
         }
 
+//        handlePitch(pitch);
+        handleYaw(yaw);
+
         if (lockToggleMode) {
             double subtractive = currentRoll - referenceRoll;
 
@@ -264,26 +267,35 @@ public class MusicControllerService extends Service implements DeviceCallback {
     private void handlePitch(float pitch) {
         currentPitch = pitch;
 
+        // ARM UP IS NEGATIVE, DOWN IS POSITIVE
+
         double subtractive = currentPitch - referencePitch;
         if (subtractive > PITCH_THRESHOLD) {
 //            volUp();
             referencePitch = currentPitch;
+//            Log.d("TAG", "PITCH: +");
         } else if (subtractive < -PITCH_THRESHOLD) {
 //            volDown();
             referencePitch = currentPitch;
+//            Log.d("TAG", "PITCH: -");
         }
     }
 
     private void handleYaw(float yaw) {
         currentYaw = yaw;
 
+        // INCREASE LEFT, DECREASE RIGHT
+
         double subtractive = currentYaw - referenceYaw;
         if (subtractive > YAW_THRESHOLD) {
 //            volUp();
             referenceYaw = currentYaw;
+//            Log.d("TAG", "YAW: +");
         } else if (subtractive < -YAW_THRESHOLD) {
 //            volDown();
             referenceYaw = currentYaw;
+//            Log.d("TAG", "YAW: -");
+
         }
     }
 
