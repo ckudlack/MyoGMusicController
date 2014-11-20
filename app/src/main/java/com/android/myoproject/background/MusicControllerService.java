@@ -28,16 +28,26 @@ import com.thalmic.myo.Pose;
 public class MusicControllerService extends Service implements DeviceCallback {
 
     private static float ROLL_THRESHOLD = 1.3f;
+    private static float PITCH_THRESHOLD = 0.0f;
+    private static float YAW_THRESHOLD = 0.0f;
+
     private static float UNLOCK_THRESHOLD = 15;
     private static int BLOCK_TIME = 2000;
     private static final int NOTIFICATION_ID = 50990;
 
     private boolean blockEverything = false;
-    private double referenceRoll = 0;
+
     private double currentRoll = 0;
+    private double currentYaw = 0;
+    private double currentPitch = 0;
+
     private boolean fistMade = false;
     private boolean lockToggleMode = false;
     private boolean unlocked = false;
+
+    private double referenceRoll = 0;
+    private double referenceYaw = 0;
+    private double referencePitch = 0;
 
     private Myo currentMyo;
 
@@ -205,20 +215,9 @@ public class MusicControllerService extends Service implements DeviceCallback {
     }
 
     @Override
-    public void handleRotationCalc(float roll) {
-        currentRoll = roll;
-
+    public void handleRotationCalc(float pitch, float roll, float yaw) {
         if (fistMade) {
-            double subtractive = currentRoll - referenceRoll;
-            if (subtractive > ROLL_THRESHOLD) {
-//                    Log.d("h", "+");
-                volUp();
-                referenceRoll = currentRoll;
-            } else if (subtractive < -ROLL_THRESHOLD) {
-//                    Log.d("h", "-");
-                volDown();
-                referenceRoll = currentRoll;
-            }
+            handleRoll(roll);
         }
 
         if (lockToggleMode) {
@@ -234,6 +233,58 @@ public class MusicControllerService extends Service implements DeviceCallback {
     @Override
     public void initReferenceRoll() {
         referenceRoll *= -1;
+    }
+
+    private int handleAxis(double current, double reference, float threshold) {
+        double subtractive = current - reference;
+        if (subtractive > threshold) {
+            reference = current;
+            return 1;
+        } else if (subtractive < -threshold) {
+            reference = current;
+            return -1;
+        } else {
+            return 0;
+        }
+    }
+
+    private void handleRoll(float roll) {
+        currentRoll = roll;
+
+        double subtractive = currentRoll - referenceRoll;
+        if (subtractive > ROLL_THRESHOLD) {
+            volUp();
+            referenceRoll = currentRoll;
+        } else if (subtractive < -ROLL_THRESHOLD) {
+            volDown();
+            referenceRoll = currentRoll;
+        }
+    }
+
+    private void handlePitch(float pitch) {
+        currentPitch = pitch;
+
+        double subtractive = currentPitch - referencePitch;
+        if (subtractive > PITCH_THRESHOLD) {
+//            volUp();
+            referencePitch = currentPitch;
+        } else if (subtractive < -PITCH_THRESHOLD) {
+//            volDown();
+            referencePitch = currentPitch;
+        }
+    }
+
+    private void handleYaw(float yaw) {
+        currentYaw = yaw;
+
+        double subtractive = currentYaw - referenceYaw;
+        if (subtractive > YAW_THRESHOLD) {
+//            volUp();
+            referenceYaw = currentYaw;
+        } else if (subtractive < -YAW_THRESHOLD) {
+//            volDown();
+            referenceYaw = currentYaw;
+        }
     }
 
     private void goToNextSong() {
@@ -261,11 +312,6 @@ public class MusicControllerService extends Service implements DeviceCallback {
 
     @Subscribe
     public void destroyServiceEvent(BusEvent.DestroyServiceEvent event) {
-/*        Hub.getInstance().removeListener(deviceListener);
-        // The Service is finishing, so shutdown the Hub. This will disconnect from the Myo.
-        Hub.getInstance().shutdown();
-        MyoApplication.bus.unregister(this);*/
-
         this.stopSelf();
     }
 }

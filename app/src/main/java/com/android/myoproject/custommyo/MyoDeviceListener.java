@@ -77,13 +77,13 @@ public class MyoDeviceListener extends AbstractDeviceListener {
         // Calculate Euler angles (roll, pitch, and yaw) from the quaternion.
         float roll = (float) Math.toDegrees(Quaternion.roll(rotation));
         float pitch = (float) Math.toDegrees(Quaternion.pitch(rotation));
-        float yaw = (float) Math.toDegrees(Quaternion.yaw(rotation)); // Yaw is arm twist?
+        float yaw = (float) Math.toDegrees(Quaternion.yaw(rotation));
         // Adjust roll and pitch for the orientation of the Myo on the arm.
         if (mXDirection == XDirection.TOWARD_ELBOW) {
             roll *= -1;
         }
 
-        callback.handleRotationCalc(roll);
+        callback.handleRotationCalc(0, roll, 0);
     }
 
     @Override
