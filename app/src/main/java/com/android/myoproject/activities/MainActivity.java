@@ -54,4 +54,16 @@ public class MainActivity extends Activity {
         }
         gestureImage.setImageResource(resource);
     }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        MyoApplication.bus.register(this);
+    }
+
+    @Override
+    protected void onPause() {
+        MyoApplication.bus.unregister(this);
+        super.onPause();
+    }
 }

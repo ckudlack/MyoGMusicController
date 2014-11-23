@@ -46,9 +46,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity
-            android:name="com.android.myoproject.activities.StartServiceActivity"
-            android:label="@string/title_activity_start_service" />
 
         <service android:name=".background.MusicControllerService" />
 
