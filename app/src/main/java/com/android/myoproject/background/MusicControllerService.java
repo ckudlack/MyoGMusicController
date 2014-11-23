@@ -1,11 +1,17 @@
 package com.android.myoproject.background;
 
+import android.annotation.TargetApi;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.media.AudioManager;
+import android.media.session.MediaController;
+import android.media.session.MediaSessionManager;
+import android.media.session.PlaybackState;
+import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
@@ -24,6 +30,8 @@ import com.thalmic.myo.Arm;
 import com.thalmic.myo.Hub;
 import com.thalmic.myo.Myo;
 import com.thalmic.myo.Pose;
+
+import java.util.List;
 
 public class MusicControllerService extends Service implements DeviceCallback {
 
@@ -54,7 +62,12 @@ public class MusicControllerService extends Service implements DeviceCallback {
     private AudioManager audioManager;
     private MyoDeviceListener deviceListener;
 
-    @Override
+    private MediaController controller;
+
+    private int playbackState = PlaybackState.STATE_PLAYING;
+
+    private MediaController.Callback callback;
+
     public IBinder onBind(Intent intent) {
         return null;
     }
@@ -95,6 +108,9 @@ public class MusicControllerService extends Service implements DeviceCallback {
 
         NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         manager.notify(NOTIFICATION_ID, builder.build());
+
+        createCallback();
+        createMediaController();
     }
 
     private void handleCast() {
@@ -102,6 +118,40 @@ public class MusicControllerService extends Service implements DeviceCallback {
         castManager = VideoCastManager.initialize(this, "appId", null, null);
         castManager.enableFeatures(BaseCastManager.FEATURE_LOCKSCREEN);
         castManager.updateVolume(1);
+    }
+
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+    private void createCallback() {
+        callback = new MediaController.Callback() {
+            @Override
+            public void onPlaybackStateChanged(PlaybackState state) {
+                playbackState = state.getState();
+            }
+        };
+    }
+
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+    private void createMediaController() {
+        ComponentName notificationListener = new ComponentName(getPackageName(), NotificationListener.class.getName());
+
+        MediaSessionManager systemService = (MediaSessionManager) getSystemService(Context.MEDIA_SESSION_SERVICE);
+        systemService.addOnActiveSessionsChangedListener(new MediaSessionManager.OnActiveSessionsChangedListener() {
+            @Override
+            public void onActiveSessionsChanged(List<MediaController> controllers) {
+                getFirstSession(controllers);
+            }
+        }, notificationListener);
+
+        List<MediaController> controllers = systemService.getActiveSessions(notificationListener);
+        getFirstSession(controllers);
+    }
+
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+    private void getFirstSession(List<MediaController> activeSessions) {
+        if (activeSessions.size() > 0) {
+            controller = activeSessions.get(0);
+            controller.registerCallback(callback);
+        }
     }
 
     @Override
@@ -151,11 +201,19 @@ public class MusicControllerService extends Service implements DeviceCallback {
     }
 
     private void volUp() {
-        audioManager.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_RAISE, AudioManager.FLAG_SHOW_UI);
+        if (controller == null) {
+            audioManager.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_RAISE, AudioManager.FLAG_SHOW_UI);
+        } else {
+            controller.adjustVolume(AudioManager.ADJUST_RAISE, AudioManager.FLAG_SHOW_UI);
+        }
     }
 
     private void volDown() {
-        audioManager.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_LOWER, AudioManager.FLAG_SHOW_UI);
+        if (controller == null) {
+            audioManager.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_LOWER, AudioManager.FLAG_SHOW_UI);
+        } else {
+            controller.adjustVolume(AudioManager.ADJUST_LOWER, AudioManager.FLAG_SHOW_UI);
+        }
     }
 
     @Override
@@ -221,7 +279,7 @@ public class MusicControllerService extends Service implements DeviceCallback {
         currentYaw = yaw;
 
         if (fistMade) {
-            handleRoll(roll);
+            handleRoll();
         }
 
 //        handlePitch(pitch);
@@ -255,7 +313,7 @@ public class MusicControllerService extends Service implements DeviceCallback {
         }
     }
 
-    private void handleRoll(float roll) {
+    private void handleRoll() {
         double subtractive = currentRoll - referenceRoll;
         if (subtractive > ROLL_THRESHOLD) {
             volUp();
@@ -266,7 +324,7 @@ public class MusicControllerService extends Service implements DeviceCallback {
         }
     }
 
-    private void handlePitch(float pitch) {
+    private void handlePitch() {
         // ARM UP IS NEGATIVE, DOWN IS POSITIVE
 
         double subtractive = currentPitch - referencePitch;
@@ -281,7 +339,7 @@ public class MusicControllerService extends Service implements DeviceCallback {
         }
     }
 
-    private void handleYaw(float yaw) {
+    private void handleYaw() {
         // INCREASE LEFT, DECREASE RIGHT
 
         double subtractive = currentYaw - referenceYaw;
@@ -293,26 +351,41 @@ public class MusicControllerService extends Service implements DeviceCallback {
 //            volDown();
             referenceYaw = currentYaw;
 //            Log.d("TAG", "YAW: -");
-
         }
     }
 
     private void goToNextSong() {
-        Intent next = new Intent("com.android.music.musicservicecommand");
-        next.putExtra("command", deviceListener.getArm() == Arm.RIGHT ? "next" : "previous");
-        sendBroadcast(next);
+        if (controller == null) {
+            Intent next = new Intent("com.android.music.musicservicecommand");
+            next.putExtra("command", deviceListener.getArm() == Arm.RIGHT ? "next" : "previous");
+            sendBroadcast(next);
+        } else {
+            controller.getTransportControls().skipToNext();
+        }
     }
 
     private void goToPrevSong() {
-        Intent previous = new Intent("com.android.music.musicservicecommand");
-        previous.putExtra("command", deviceListener.getArm() == Arm.RIGHT ? "previous" : "next");
-        sendBroadcast(previous);
+        if (controller == null) {
+            Intent previous = new Intent("com.android.music.musicservicecommand");
+            previous.putExtra("command", deviceListener.getArm() == Arm.RIGHT ? "previous" : "next");
+            sendBroadcast(previous);
+        } else {
+            controller.getTransportControls().skipToNext();
+        }
     }
 
     private void playOrPause() {
-        Intent pause = new Intent("com.android.music.musicservicecommand");
-        pause.putExtra("command", "togglepause");
-        sendBroadcast(pause);
+        if (controller == null) {
+            Intent pause = new Intent("com.android.music.musicservicecommand");
+            pause.putExtra("command", "togglepause");
+            sendBroadcast(pause);
+        } else {
+            if (playbackState == PlaybackState.STATE_PAUSED) {
+                controller.getTransportControls().play();
+            } else {
+                controller.getTransportControls().pause();
+            }
+        }
     }
 
     @Subscribe
