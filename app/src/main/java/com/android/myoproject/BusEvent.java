@@ -1,5 +1,8 @@
 package com.android.myoproject;
 
+import com.thalmic.myo.Arm;
+import com.thalmic.myo.Pose;
+
 public class BusEvent {
 
     public BusEvent() {
@@ -19,6 +22,24 @@ public class BusEvent {
 
     public static class DestroyServiceEvent extends BusEvent {
         public DestroyServiceEvent() {
+        }
+    }
+
+    public static class GestureUpdatedEvent extends BusEvent {
+        private Pose pose;
+        private Arm arm;
+
+        public GestureUpdatedEvent(Pose pose, Arm arm) {
+            this.pose = pose;
+            this.arm = arm;
+        }
+
+        public Pose getPose() {
+            return pose;
+        }
+
+        public Arm getArm() {
+            return arm;
         }
     }
 }

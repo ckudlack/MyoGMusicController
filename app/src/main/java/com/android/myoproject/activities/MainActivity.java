@@ -8,17 +8,14 @@ import android.media.AudioManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.android.myoproject.BusEvent;
 import com.android.myoproject.application.MyoApplication;
 import com.android.myoproject.R;
-import com.google.sample.castcompanionlibrary.cast.BaseCastManager;
-import com.google.sample.castcompanionlibrary.cast.VideoCastManager;
 import com.squareup.otto.Subscribe;
 import com.thalmic.myo.AbstractDeviceListener;
 import com.thalmic.myo.Arm;
@@ -30,7 +27,6 @@ import com.thalmic.myo.Quaternion;
 import com.thalmic.myo.Vector3;
 import com.thalmic.myo.XDirection;
 
-import java.io.File;
 import java.io.IOException;
 
 public class MainActivity extends Activity {
@@ -165,12 +161,11 @@ public class MainActivity extends Activity {
             super.onRssi(myo, timestamp, rssi);
         }
     };
-    private File[] files;
-    private int fileIndex = 0;
 
     private Button playPause;
     private Button prev;
     private Button next;
+    private ImageView gestureImage;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -222,6 +217,8 @@ public class MainActivity extends Activity {
                     goToNextSong();
                 }
             });
+
+            gestureImage = (ImageView) findViewById(R.id.gesture_image);
         } else {
             startActivity(new Intent(this, StartServiceActivity.class));
             finish();
@@ -321,28 +318,6 @@ public class MainActivity extends Activity {
     }
 
     @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
-    }
-
-    @Override
     protected void onResume() {
         super.onResume();
         // If Bluetooth is not enabled, request to turn it on.
@@ -405,13 +380,30 @@ public class MainActivity extends Activity {
     }
 
     @Subscribe
-    public void playbackUpdated(BusEvent.PlaybackUpdatedEvent event) {
-    }
+    public void gestureUpdated(BusEvent.GestureUpdatedEvent event) {
+        int resource = 0;
+        Arm arm = event.getArm();
 
-    private void handleCast() {
-        VideoCastManager castManager;
-        castManager = VideoCastManager.initialize(this, "appId", null, null);
-        castManager.enableFeatures(BaseCastManager.FEATURE_LOCKSCREEN);
-        castManager.updateVolume(1);
+        switch (event.getPose()) {
+            case FIST:
+                resource = arm == Arm.LEFT ? R.drawable.left_fist : R.drawable.right_fist;
+                break;
+            case FINGERS_SPREAD:
+                resource = arm == Arm.LEFT ? R.drawable.left_spread_fingers : R.drawable.right_spread_fingers;
+                break;
+            case WAVE_IN:
+                resource = arm == Arm.LEFT ? R.drawable.left_wave_right : R.drawable.right_wave_left;
+                break;
+            case WAVE_OUT:
+                resource = arm == Arm.LEFT ? R.drawable.left_wave_left : R.drawable.right_wave_right;
+                break;
+            case THUMB_TO_PINKY:
+                resource = arm == Arm.LEFT ? R.drawable.left_pinky_thumb : R.drawable.right_pinky_thumb;
+                break;
+            case REST:
+                resource = R.drawable.blank_circle;
+                break;
+        }
+        gestureImage.setImageResource(resource);
     }
 }

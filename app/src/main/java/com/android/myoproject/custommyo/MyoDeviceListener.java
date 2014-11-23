@@ -69,7 +69,7 @@ public class MyoDeviceListener extends AbstractDeviceListener {
 
     @Override
     public void onPose(Myo myo, long timestamp, Pose pose) {
-        callback.handlePose(pose);
+        callback.handlePose(pose, mArm);
     }
 
     @Override

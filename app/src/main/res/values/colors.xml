@@ -3,4 +3,6 @@
     <color name="white">#FFFFFFFF</color>
     <color name="black">#FF000000</color>
     <color name="myo_blue">#FF00BDDE</color>
+    <color name="myo_black">#FF141D28</color>
+    <color name="myo_gray">#FF3D3D3D</color>
 </resources>

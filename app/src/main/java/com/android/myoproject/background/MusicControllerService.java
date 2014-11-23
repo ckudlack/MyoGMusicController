@@ -217,7 +217,8 @@ public class MusicControllerService extends Service implements DeviceCallback {
     }
 
     @Override
-    public void handlePose(Pose pose) {
+    public void handlePose(Pose pose, Arm arm) {
+        MyoApplication.bus.post(new BusEvent.GestureUpdatedEvent(pose, arm));
         switch (pose) {
             case FINGERS_SPREAD:
                 if (unlocked) {
