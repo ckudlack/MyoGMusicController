@@ -7,6 +7,7 @@ import android.app.Service;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.media.AudioManager;
 import android.media.session.MediaController;
 import android.media.session.MediaSessionManager;
@@ -19,6 +20,7 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.android.myoproject.BusEvent;
+import com.android.myoproject.Constants;
 import com.android.myoproject.R;
 import com.android.myoproject.application.MyoApplication;
 import com.android.myoproject.callbacks.DeviceCallback;
@@ -162,6 +164,9 @@ public class MusicControllerService extends Service implements DeviceCallback {
 
         MyoApplication.bus.unregister(this);
         Log.d("TAG", "Service stopped");
+
+        SharedPreferences preferences = getSharedPreferences(Constants.PREFERENCES, MODE_PRIVATE);
+        preferences.edit().putBoolean(Constants.NOTIFICATION_ACTIVE, false).apply();
 
         super.onDestroy();
     }

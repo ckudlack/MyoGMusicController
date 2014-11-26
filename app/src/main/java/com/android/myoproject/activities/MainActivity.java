@@ -2,10 +2,12 @@ package com.android.myoproject.activities;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.widget.ImageView;
 
 import com.android.myoproject.BusEvent;
+import com.android.myoproject.Constants;
 import com.android.myoproject.application.MyoApplication;
 import com.android.myoproject.R;
 import com.android.myoproject.background.MusicControllerService;
@@ -24,7 +26,12 @@ public class MainActivity extends Activity {
         MyoApplication.bus.register(this);
 
         gestureImage = (ImageView) findViewById(R.id.gesture_image);
-        startService(new Intent(this, MusicControllerService.class));
+
+        SharedPreferences preferences = getSharedPreferences("PREFS", MODE_PRIVATE);
+        if (!preferences.getBoolean(Constants.NOTIFICATION_ACTIVE, false)) {
+            preferences.edit().putBoolean(Constants.NOTIFICATION_ACTIVE, true).apply();
+            startService(new Intent(this, MusicControllerService.class));
+        }
     }
 
     @Subscribe
