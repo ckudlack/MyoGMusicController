@@ -23,7 +23,8 @@
 
         <receiver android:name=".background.ButtonReceiver" />
 
-        <service android:name=".background.NotificationListener"
+        <service
+            android:name=".background.NotificationListener"
             android:label="@string/service_name"
             android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">
             <intent-filter>
@@ -33,7 +34,8 @@
 
         <activity
             android:name="com.android.myoproject.activities.MainActivity"
-            android:label="@string/app_name">
+            android:label="@string/app_name"
+            android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
