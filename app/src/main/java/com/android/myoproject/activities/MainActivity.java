@@ -4,8 +4,11 @@ import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.android.myoproject.BusEvent;
 import com.android.myoproject.Constants;
@@ -20,6 +23,7 @@ public class MainActivity extends Activity {
     private ImageView gestureImage;
     private TextView connectedView;
     private TextView syncedView;
+    private Button scanButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,19 +35,36 @@ public class MainActivity extends Activity {
         gestureImage = (ImageView) findViewById(R.id.gesture_image);
         connectedView = (TextView) findViewById(R.id.connection_state);
         syncedView = (TextView) findViewById(R.id.sync_state);
+        scanButton = (Button) findViewById(R.id.scan);
 
-        SharedPreferences preferences = getSharedPreferences("PREFS", MODE_PRIVATE);
+        final SharedPreferences preferences = getSharedPreferences(Constants.PREFERENCES, MODE_PRIVATE);
 
         boolean isConnected = preferences.getBoolean(Constants.CONNECTION_KEY, false);
-        connectedView.setCompoundDrawables(null, null, getDrawable(isConnected ? R.drawable.green_circle : R.drawable.red_circle), null);
+        connectedView.setCompoundDrawablesWithIntrinsicBounds(0, 0, isConnected ? R.drawable.green_circle : R.drawable.red_circle, 0);
 
         boolean isSynced = preferences.getBoolean(Constants.SYNC_KEY, false);
-        syncedView.setCompoundDrawables(null, null, getDrawable(isSynced ? R.drawable.green_circle : R.drawable.red_circle), null);
+        syncedView.setCompoundDrawablesWithIntrinsicBounds(0, 0, isSynced ? R.drawable.green_circle : R.drawable.red_circle, 0);
 
-        if (!preferences.getBoolean(Constants.NOTIFICATION_ACTIVE, false)) {
-            preferences.edit().putBoolean(Constants.NOTIFICATION_ACTIVE, true).apply();
-            startService(new Intent(this, MusicControllerService.class));
-        }
+        scanButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (!preferences.getBoolean(Constants.NOTIFICATION_ACTIVE, false)) {
+                    preferences.edit().putBoolean(Constants.NOTIFICATION_ACTIVE, true).apply();
+                    startService(new Intent(MainActivity.this, MusicControllerService.class));
+                } else {
+                    Toast.makeText(MainActivity.this, "Myo Service already running. Hold button to override", Toast.LENGTH_LONG).show();
+                }
+            }
+        });
+
+        scanButton.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                preferences.edit().putBoolean(Constants.NOTIFICATION_ACTIVE, true).apply();
+                startService(new Intent(MainActivity.this, MusicControllerService.class));
+                return true;
+            }
+        });
     }
 
     @Subscribe
@@ -68,7 +89,7 @@ public class MainActivity extends Activity {
                 resource = arm == Arm.LEFT ? R.drawable.left_pinky_thumb : R.drawable.right_pinky_thumb;
                 break;
             case REST:
-                resource = R.drawable.blank_circle;
+                resource = R.drawable.transparent_circle;
                 break;
         }
         gestureImage.setImageResource(resource);
@@ -76,23 +97,23 @@ public class MainActivity extends Activity {
 
     @Subscribe
     public void connectionStateUpdated(BusEvent.MyoConnectionStatusEvent event) {
-        connectedView.setCompoundDrawables(null, null, getDrawable(event.isConnected() ? R.drawable.green_circle : R.drawable.red_circle), null);
+        connectedView.setCompoundDrawablesWithIntrinsicBounds(0, 0, event.isConnected() ? R.drawable.green_circle : R.drawable.red_circle, 0);
     }
 
     @Subscribe
     public void syncStateUpdated(BusEvent.MyoSyncStatusEvent event) {
-        syncedView.setCompoundDrawables(null, null, getDrawable(event.isSynced() ? R.drawable.green_circle : R.drawable.red_circle), null);
+        syncedView.setCompoundDrawablesWithIntrinsicBounds(0, 0, event.isSynced() ? R.drawable.green_circle : R.drawable.red_circle, 0);
     }
 
     @Override
-    protected void onResume() {
-        super.onResume();
+    protected void onStart() {
+        super.onStart();
         MyoApplication.bus.register(this);
     }
 
     @Override
-    protected void onPause() {
+    protected void onStop() {
         MyoApplication.bus.unregister(this);
-        super.onPause();
+        super.onStop();
     }
 }

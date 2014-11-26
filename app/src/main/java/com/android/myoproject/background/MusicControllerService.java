@@ -165,7 +165,12 @@ public class MusicControllerService extends Service implements DeviceCallback {
         MyoApplication.bus.unregister(this);
         Log.d("TAG", "Service stopped");
 
+        preferences.edit().putBoolean(Constants.CONNECTION_KEY, false).apply();
+        preferences.edit().putBoolean(Constants.SYNC_KEY, false).apply();
         preferences.edit().putBoolean(Constants.NOTIFICATION_ACTIVE, false).apply();
+
+        MyoApplication.bus.post(new BusEvent.MyoConnectionStatusEvent(false));
+        MyoApplication.bus.post(new BusEvent.MyoSyncStatusEvent(false));
 
         super.onDestroy();
     }
@@ -312,19 +317,6 @@ public class MusicControllerService extends Service implements DeviceCallback {
     public void setConnected(boolean isConnected) {
         MyoApplication.bus.post(new BusEvent.MyoConnectionStatusEvent(isConnected));
         preferences.edit().putBoolean(Constants.CONNECTION_KEY, isConnected).apply();
-    }
-
-    private int handleAxis(double current, double reference, float threshold) {
-        double subtractive = current - reference;
-        if (subtractive > threshold) {
-            reference = current;
-            return 1;
-        } else if (subtractive < -threshold) {
-            reference = current;
-            return -1;
-        } else {
-            return 0;
-        }
     }
 
     private void handleRoll() {

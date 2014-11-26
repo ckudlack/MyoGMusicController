@@ -7,4 +7,5 @@
     <color name="myo_gray">#FF3D3D3D</color>
     <color name="red">#ffda0b12</color>
     <color name="green">#ff05ba03</color>
+    <color name="transparent">#00000000</color>
 </resources>

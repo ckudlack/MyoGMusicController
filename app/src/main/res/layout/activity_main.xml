@@ -30,7 +30,8 @@
             android:layout_width="80dp"
             android:layout_height="80dp"
             android:background="@drawable/blank_circle"
-            android:padding="2dp" />
+            android:src="@drawable/left_fist"
+            android:padding="3dp" />
 
         <TextView
             android:id="@+id/connection_state"
@@ -38,6 +39,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="30dp"
             android:drawablePadding="10dp"
+            android:drawableRight="@drawable/red_circle"
             android:padding="10dp"
             android:text="Connected"
             android:textSize="20sp" />
@@ -47,6 +49,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:drawablePadding="10dp"
+            android:drawableRight="@drawable/red_circle"
             android:padding="10dp"
             android:text="Synced"
             android:textSize="20sp" />
