@@ -9,65 +9,47 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context=".MainActivity">
 
-    <Button
-        android:id="@+id/scan"
+    <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerInParent="true"
-        android:padding="10dp"
-        android:text="SCAN" />
-
-    <LinearLayout
-        android:id="@+id/media_control"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/scan"
-        android:layout_centerHorizontal="true"
-        android:orientation="horizontal"
-        android:paddingTop="20dp">
-
-        <Button
-            android:id="@+id/prev"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginRight="10dp"
-            android:padding="10dp"
-            android:text="Prev" />
-
-        <Button
-            android:id="@+id/play_pause"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginRight="10dp"
-            android:padding="10dp"
-            android:text="PLAY/PAUSE" />
-
-        <Button
-            android:id="@+id/next"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:padding="10dp"
-            android:text="NEXT" />
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/media_control"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="20dp"
+        android:layout_marginTop="50dp"
+        android:gravity="center_horizontal"
         android:orientation="vertical">
+
+        <Button
+            android:id="@+id/scan"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="30dp"
+            android:padding="10dp"
+            android:text="Scan" />
 
         <ImageView
             android:id="@+id/gesture_image"
             android:layout_width="80dp"
             android:layout_height="80dp"
-            android:background="@drawable/blank_circle" />
+            android:background="@drawable/blank_circle"
+            android:padding="2dp" />
 
         <TextView
             android:id="@+id/connection_state"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:layout_marginTop="30dp"
+            android:drawablePadding="10dp"
+            android:padding="10dp"
+            android:text="Connected"
+            android:textSize="20sp" />
+
+        <TextView
+            android:id="@+id/sync_state"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:drawablePadding="10dp"
+            android:padding="10dp"
+            android:text="Synced"
+            android:textSize="20sp" />
     </LinearLayout>
 
 </RelativeLayout>

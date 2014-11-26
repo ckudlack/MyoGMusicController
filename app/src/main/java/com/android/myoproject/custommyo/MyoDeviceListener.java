@@ -55,16 +55,16 @@ public class MyoDeviceListener extends AbstractDeviceListener {
 
     @Override
     public void onAttach(Myo myo, long timestamp) {
-        Toast.makeText(context, "Paired", Toast.LENGTH_SHORT).show();
     }
 
     @Override
     public void onConnect(Myo myo, long timestamp) {
-        Toast.makeText(context, "Connected", Toast.LENGTH_SHORT).show();
+        callback.setConnected(true);
     }
 
     @Override
     public void onDisconnect(Myo myo, long timestamp) {
+        callback.setConnected(false);
     }
 
     @Override

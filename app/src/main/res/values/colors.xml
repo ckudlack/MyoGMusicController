@@ -5,4 +5,6 @@
     <color name="myo_blue">#FF00BDDE</color>
     <color name="myo_black">#FF141D28</color>
     <color name="myo_gray">#FF3D3D3D</color>
+    <color name="red">#ffda0b12</color>
+    <color name="green">#ff05ba03</color>
 </resources>

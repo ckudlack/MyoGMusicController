@@ -25,8 +25,6 @@ import com.android.myoproject.R;
 import com.android.myoproject.application.MyoApplication;
 import com.android.myoproject.callbacks.DeviceCallback;
 import com.android.myoproject.custommyo.MyoDeviceListener;
-import com.google.sample.castcompanionlibrary.cast.BaseCastManager;
-import com.google.sample.castcompanionlibrary.cast.VideoCastManager;
 import com.squareup.otto.Subscribe;
 import com.thalmic.myo.Arm;
 import com.thalmic.myo.Hub;
@@ -66,9 +64,10 @@ public class MusicControllerService extends Service implements DeviceCallback {
 
     private MediaController controller;
 
-    private int playbackState = PlaybackState.STATE_PLAYING;
+    private int playbackState;
 
     private MediaController.Callback callback;
+    private SharedPreferences preferences;
 
     public IBinder onBind(Intent intent) {
         return null;
@@ -80,6 +79,9 @@ public class MusicControllerService extends Service implements DeviceCallback {
 
         MyoApplication.bus.register(this);
 
+        initPlaybackState();
+
+        preferences = getSharedPreferences(Constants.PREFERENCES, MODE_PRIVATE);
         audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
         deviceListener = new MyoDeviceListener(this, this);
 
@@ -115,11 +117,9 @@ public class MusicControllerService extends Service implements DeviceCallback {
         createMediaController();
     }
 
-    private void handleCast() {
-        VideoCastManager castManager;
-        castManager = VideoCastManager.initialize(this, "appId", null, null);
-        castManager.enableFeatures(BaseCastManager.FEATURE_LOCKSCREEN);
-        castManager.updateVolume(1);
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+    private void initPlaybackState() {
+        playbackState = PlaybackState.STATE_PLAYING;
     }
 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
@@ -165,7 +165,6 @@ public class MusicControllerService extends Service implements DeviceCallback {
         MyoApplication.bus.unregister(this);
         Log.d("TAG", "Service stopped");
 
-        SharedPreferences preferences = getSharedPreferences(Constants.PREFERENCES, MODE_PRIVATE);
         preferences.edit().putBoolean(Constants.NOTIFICATION_ACTIVE, false).apply();
 
         super.onDestroy();
@@ -271,6 +270,9 @@ public class MusicControllerService extends Service implements DeviceCallback {
     @Override
     public void setCurrentMyo(Myo myo) {
         this.currentMyo = myo;
+        boolean isSynced = myo != null;
+        MyoApplication.bus.post(new BusEvent.MyoSyncStatusEvent(isSynced));
+        preferences.edit().putBoolean(Constants.SYNC_KEY, isSynced).apply();
     }
 
     @Override
@@ -304,6 +306,12 @@ public class MusicControllerService extends Service implements DeviceCallback {
     @Override
     public void initReferenceRoll() {
         referenceRoll *= -1;
+    }
+
+    @Override
+    public void setConnected(boolean isConnected) {
+        MyoApplication.bus.post(new BusEvent.MyoConnectionStatusEvent(isConnected));
+        preferences.edit().putBoolean(Constants.CONNECTION_KEY, isConnected).apply();
     }
 
     private int handleAxis(double current, double reference, float threshold) {
@@ -392,11 +400,6 @@ public class MusicControllerService extends Service implements DeviceCallback {
                 controller.getTransportControls().pause();
             }
         }
-    }
-
-    @Subscribe
-    public void playbackUpdated(BusEvent.PlaybackUpdatedEvent event) {
-        Log.d("TAG", "Got player callback");
     }
 
     @Subscribe

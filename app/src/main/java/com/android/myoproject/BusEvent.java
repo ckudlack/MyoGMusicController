@@ -8,18 +8,6 @@ public class BusEvent {
     public BusEvent() {
     }
 
-    public static class PlaybackUpdatedEvent extends BusEvent {
-        private boolean isPlaying;
-
-        public PlaybackUpdatedEvent(boolean isPlaying) {
-            this.isPlaying = isPlaying;
-        }
-
-        public boolean isPlaying() {
-            return isPlaying;
-        }
-    }
-
     public static class DestroyServiceEvent extends BusEvent {
         public DestroyServiceEvent() {
         }
@@ -40,6 +28,30 @@ public class BusEvent {
 
         public Arm getArm() {
             return arm;
+        }
+    }
+
+    public static class MyoConnectionStatusEvent extends BusEvent {
+        private boolean isConnected;
+
+        public MyoConnectionStatusEvent(boolean isConnected) {
+            this.isConnected = isConnected;
+        }
+
+        public boolean isConnected() {
+            return isConnected;
+        }
+    }
+
+    public static class MyoSyncStatusEvent extends BusEvent {
+        private boolean isSynced;
+
+        public MyoSyncStatusEvent(boolean isSynced) {
+            this.isSynced = isSynced;
+        }
+
+        public boolean isSynced() {
+            return isSynced;
         }
     }
 }

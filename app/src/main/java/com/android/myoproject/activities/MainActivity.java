@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import com.android.myoproject.BusEvent;
 import com.android.myoproject.Constants;
@@ -17,6 +18,8 @@ import com.thalmic.myo.Arm;
 public class MainActivity extends Activity {
 
     private ImageView gestureImage;
+    private TextView connectedView;
+    private TextView syncedView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -26,8 +29,17 @@ public class MainActivity extends Activity {
         MyoApplication.bus.register(this);
 
         gestureImage = (ImageView) findViewById(R.id.gesture_image);
+        connectedView = (TextView) findViewById(R.id.connection_state);
+        syncedView = (TextView) findViewById(R.id.sync_state);
 
         SharedPreferences preferences = getSharedPreferences("PREFS", MODE_PRIVATE);
+
+        boolean isConnected = preferences.getBoolean(Constants.CONNECTION_KEY, false);
+        connectedView.setCompoundDrawables(null, null, getDrawable(isConnected ? R.drawable.green_circle : R.drawable.red_circle), null);
+
+        boolean isSynced = preferences.getBoolean(Constants.SYNC_KEY, false);
+        syncedView.setCompoundDrawables(null, null, getDrawable(isSynced ? R.drawable.green_circle : R.drawable.red_circle), null);
+
         if (!preferences.getBoolean(Constants.NOTIFICATION_ACTIVE, false)) {
             preferences.edit().putBoolean(Constants.NOTIFICATION_ACTIVE, true).apply();
             startService(new Intent(this, MusicControllerService.class));
@@ -60,6 +72,16 @@ public class MainActivity extends Activity {
                 break;
         }
         gestureImage.setImageResource(resource);
+    }
+
+    @Subscribe
+    public void connectionStateUpdated(BusEvent.MyoConnectionStatusEvent event) {
+        connectedView.setCompoundDrawables(null, null, getDrawable(event.isConnected() ? R.drawable.green_circle : R.drawable.red_circle), null);
+    }
+
+    @Subscribe
+    public void syncStateUpdated(BusEvent.MyoSyncStatusEvent event) {
+        syncedView.setCompoundDrawables(null, null, getDrawable(event.isSynced() ? R.drawable.green_circle : R.drawable.red_circle), null);
     }
 
     @Override

@@ -11,4 +11,5 @@ public interface DeviceCallback {
     void toggleUnlocked(boolean isUnlocked);
     void handleRotationCalc(float pitch, float roll, float yaw);
     void initReferenceRoll();
+    void setConnected(boolean isConnected);
 }
