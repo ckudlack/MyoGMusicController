@@ -67,6 +67,11 @@ public class MainActivity extends Activity {
         });
     }
 
+    private void goToNotificationSettingsMenu() {
+        Intent intent = new Intent("android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS");
+        startActivityForResult(intent, 1);
+    }
+
     @Subscribe
     public void gestureUpdated(BusEvent.GestureUpdatedEvent event) {
         int resource = 0;
@@ -103,6 +108,16 @@ public class MainActivity extends Activity {
     @Subscribe
     public void syncStateUpdated(BusEvent.MyoSyncStatusEvent event) {
         syncedView.setCompoundDrawablesWithIntrinsicBounds(0, 0, event.isSynced() ? R.drawable.green_circle : R.drawable.red_circle, 0);
+    }
+
+    @Subscribe
+    public void userNeedsPermission(BusEvent.UserNeedsPermissionEvent event) {
+        goToNotificationSettingsMenu();
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        MyoApplication.bus.post(new BusEvent.RestartControllerEvent());
     }
 
     @Override

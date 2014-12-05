@@ -54,4 +54,14 @@ public class BusEvent {
             return isSynced;
         }
     }
+
+    public static class UserNeedsPermissionEvent extends BusEvent {
+        public UserNeedsPermissionEvent() {
+        }
+    }
+
+    public static class RestartControllerEvent extends BusEvent {
+        public RestartControllerEvent() {
+        }
+    }
 }

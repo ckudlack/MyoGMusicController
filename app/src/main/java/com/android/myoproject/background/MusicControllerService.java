@@ -114,7 +114,11 @@ public class MusicControllerService extends Service implements DeviceCallback {
         manager.notify(NOTIFICATION_ID, builder.build());
 
         createCallback();
-        createMediaController();
+        try {
+            createMediaController();
+        } catch (SecurityException e) {
+            MyoApplication.bus.post(new BusEvent.UserNeedsPermissionEvent());
+        }
     }
 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
@@ -133,7 +137,7 @@ public class MusicControllerService extends Service implements DeviceCallback {
     }
 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-    private void createMediaController() {
+    private void createMediaController() throws SecurityException {
         ComponentName notificationListener = new ComponentName(getPackageName(), NotificationListener.class.getName());
 
         MediaSessionManager systemService = (MediaSessionManager) getSystemService(Context.MEDIA_SESSION_SERVICE);
@@ -397,5 +401,10 @@ public class MusicControllerService extends Service implements DeviceCallback {
     @Subscribe
     public void destroyServiceEvent(BusEvent.DestroyServiceEvent event) {
         this.stopSelf();
+    }
+
+    @Subscribe
+    public void restartMediaController(BusEvent.RestartControllerEvent event) {
+        createMediaController();
     }
 }
