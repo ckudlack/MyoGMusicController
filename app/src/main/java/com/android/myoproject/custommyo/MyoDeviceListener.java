@@ -25,6 +25,16 @@ public class MyoDeviceListener extends AbstractDeviceListener {
     }
 
     @Override
+    public void onUnlock(Myo myo, long timestamp) {
+        callback.toggleUnlocked(true);
+    }
+
+    @Override
+    public void onLock(Myo myo, long timestamp) {
+//        callback.toggleUnlocked(false);
+    }
+
+    @Override
     public void onArmUnsync(Myo myo, long timestamp) {
         mArm = Arm.UNKNOWN;
         mXDirection = XDirection.UNKNOWN;

@@ -35,12 +35,10 @@ import java.util.List;
 
 public class MusicControllerService extends Service implements DeviceCallback {
 
-    private static float ROLL_THRESHOLD = 1.3f;
+    private static float ROLL_THRESHOLD = 1.5f;
     private static float PITCH_THRESHOLD = 0.0f;
-    private static float YAW_THRESHOLD = 0.0f;
+    private static float YAW_THRESHOLD = 1.5f;
 
-    private static float UNLOCK_THRESHOLD = 15;
-    private static int BLOCK_TIME = 2000;
     private static final int NOTIFICATION_ID = 50990;
 
     private boolean blockEverything = false;
@@ -51,7 +49,6 @@ public class MusicControllerService extends Service implements DeviceCallback {
 
     private boolean fistMade = false;
     private boolean lockToggleMode = false;
-    private boolean unlocked = false;
 
     private double referenceRoll = 0;
     private double referenceYaw = 0;
@@ -68,6 +65,9 @@ public class MusicControllerService extends Service implements DeviceCallback {
 
     private MediaController.Callback callback;
     private SharedPreferences preferences;
+
+    private boolean isRolling = false;
+    private boolean isYawing = false;
 
     public IBinder onBind(Intent intent) {
         return null;
@@ -140,15 +140,15 @@ public class MusicControllerService extends Service implements DeviceCallback {
     private void createMediaController() throws SecurityException {
         ComponentName notificationListener = new ComponentName(getPackageName(), NotificationListener.class.getName());
 
-        MediaSessionManager systemService = (MediaSessionManager) getSystemService(Context.MEDIA_SESSION_SERVICE);
-        systemService.addOnActiveSessionsChangedListener(new MediaSessionManager.OnActiveSessionsChangedListener() {
+        MediaSessionManager sessionManager = (MediaSessionManager) getSystemService(Context.MEDIA_SESSION_SERVICE);
+        sessionManager.addOnActiveSessionsChangedListener(new MediaSessionManager.OnActiveSessionsChangedListener() {
             @Override
             public void onActiveSessionsChanged(List<MediaController> controllers) {
                 getFirstSession(controllers);
             }
         }, notificationListener);
 
-        List<MediaController> controllers = systemService.getActiveSessions(notificationListener);
+        List<MediaController> controllers = sessionManager.getActiveSessions(notificationListener);
         getFirstSession(controllers);
     }
 
@@ -193,24 +193,9 @@ public class MusicControllerService extends Service implements DeviceCallback {
     }
 
     private void toggleLock() {
-        // Unlocked when the user does the THUMB_TO_PINKY gesture and a clockwise hand rotation within 500ms
-
-        lockToggleMode = false;
-        unlocked = !unlocked;
-
-        blockEverything = true;
-
-        new Handler().postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                blockEverything = false;
-            }
-        }, BLOCK_TIME);
-
-        currentMyo.vibrate(Myo.VibrationType.SHORT);
-        currentMyo.vibrate(Myo.VibrationType.SHORT);
-
-        Toast.makeText(this, unlocked ? "Unlocked" : "Locked", Toast.LENGTH_SHORT).show();
+        if (currentMyo.isUnlocked()) {
+            currentMyo.lock();
+        }
     }
 
     private void volUp() {
@@ -234,36 +219,36 @@ public class MusicControllerService extends Service implements DeviceCallback {
         MyoApplication.bus.post(new BusEvent.GestureUpdatedEvent(pose, arm));
         switch (pose) {
             case FINGERS_SPREAD:
-                if (unlocked) {
-                    currentMyo.vibrate(Myo.VibrationType.SHORT);
-                    playOrPause();
-                    Toast.makeText(this, pose.name(), Toast.LENGTH_SHORT).show();
-                }
+                currentMyo.vibrate(Myo.VibrationType.SHORT);
+                playOrPause();
+                Toast.makeText(this, pose.name(), Toast.LENGTH_SHORT).show();
                 break;
             case FIST:
-                if (unlocked && !fistMade) {
-                    fistMade = true;
-                }
+                fistMade = true;
                 break;
             case REST:
                 resetFist();
                 break;
-            case THUMB_TO_PINKY:
-                setToUnlockMode();
+            case DOUBLE_TAP:
+                toggleLock();
                 break;
             case WAVE_IN:
-                if (unlocked) {
-                    currentMyo.vibrate(Myo.VibrationType.SHORT);
+                currentMyo.vibrate(Myo.VibrationType.SHORT);
+                if (deviceListener.getArm() == Arm.LEFT) {
+                    goToNextSong();
+                } else {
                     goToPrevSong();
-                    Toast.makeText(this, pose.name(), Toast.LENGTH_SHORT).show();
                 }
+                Toast.makeText(this, pose.name(), Toast.LENGTH_SHORT).show();
                 break;
             case WAVE_OUT:
-                if (unlocked) {
-                    currentMyo.vibrate(Myo.VibrationType.SHORT);
+                currentMyo.vibrate(Myo.VibrationType.SHORT);
+                if (deviceListener.getArm() == Arm.LEFT) {
+                    goToPrevSong();
+                } else {
                     goToNextSong();
-                    Toast.makeText(this, pose.name(), Toast.LENGTH_SHORT).show();
                 }
+                Toast.makeText(this, pose.name(), Toast.LENGTH_SHORT).show();
                 break;
             default:
                 break;
@@ -286,7 +271,18 @@ public class MusicControllerService extends Service implements DeviceCallback {
 
     @Override
     public void toggleUnlocked(boolean isUnlocked) {
-        unlocked = isUnlocked;
+//        unlocked = isUnlocked;
+
+        if (currentMyo == null) {
+            return;
+        }
+
+        if (!isUnlocked) {
+            fistMade = false;
+//            currentMyo.lock();
+        } else {
+            currentMyo.unlock(Myo.UnlockType.HOLD);
+        }
     }
 
     @Override
@@ -296,18 +292,8 @@ public class MusicControllerService extends Service implements DeviceCallback {
         currentYaw = yaw;
 
         if (fistMade) {
-            handleRoll();
-        }
-
-//        handlePitch(pitch);
-//        handleYaw(yaw);
-
-        if (lockToggleMode) {
-            double subtractive = currentRoll - referenceRoll;
-
-            if (subtractive > UNLOCK_THRESHOLD) {
-                toggleLock();
-                referenceRoll = currentRoll;
+            if (!isYawing) {
+                isRolling = handleRoll();
             }
         }
     }
@@ -323,15 +309,18 @@ public class MusicControllerService extends Service implements DeviceCallback {
         preferences.edit().putBoolean(Constants.CONNECTION_KEY, isConnected).apply();
     }
 
-    private void handleRoll() {
+    private boolean handleRoll() {
         double subtractive = currentRoll - referenceRoll;
         if (subtractive > ROLL_THRESHOLD) {
             volUp();
             referenceRoll = currentRoll;
+            return true;
         } else if (subtractive < -ROLL_THRESHOLD) {
             volDown();
             referenceRoll = currentRoll;
+            return true;
         }
+        return fistMade;
     }
 
     private void handlePitch() {
@@ -349,19 +338,20 @@ public class MusicControllerService extends Service implements DeviceCallback {
         }
     }
 
-    private void handleYaw() {
+    private boolean handleYaw() {
         // INCREASE LEFT, DECREASE RIGHT
 
         double subtractive = currentYaw - referenceYaw;
         if (subtractive > YAW_THRESHOLD) {
-//            volUp();
+            rewind();
             referenceYaw = currentYaw;
-//            Log.d("TAG", "YAW: +");
+            return true;
         } else if (subtractive < -YAW_THRESHOLD) {
-//            volDown();
+            fastForward();
             referenceYaw = currentYaw;
-//            Log.d("TAG", "YAW: -");
+            return true;
         }
+        return fistMade;
     }
 
     private void goToNextSong() {
@@ -380,7 +370,7 @@ public class MusicControllerService extends Service implements DeviceCallback {
             previous.putExtra("command", deviceListener.getArm() == Arm.RIGHT ? "previous" : "next");
             sendBroadcast(previous);
         } else {
-            controller.getTransportControls().skipToNext();
+            controller.getTransportControls().skipToPrevious();
         }
     }
 
@@ -395,6 +385,19 @@ public class MusicControllerService extends Service implements DeviceCallback {
             } else {
                 controller.getTransportControls().pause();
             }
+        }
+    }
+
+    private void fastForward() {
+        if (controller != null) {
+            controller.getTransportControls().seekTo(controller.getPlaybackState().getPosition() + 10000);
+        }
+    }
+
+    private void rewind() {
+        if (controller != null) {
+            long newPosition = controller.getPlaybackState().getPosition() - 10000;
+            controller.getTransportControls().seekTo(newPosition < 0 ? 0 : newPosition);
         }
     }
 
