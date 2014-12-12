@@ -91,7 +91,7 @@ public class MainActivity extends Activity {
                 resource = arm == Arm.LEFT ? R.drawable.left_wave_left : R.drawable.right_wave_right;
                 break;
             case DOUBLE_TAP:
-                resource = arm == Arm.LEFT ? R.drawable.left_pinky_thumb : R.drawable.right_pinky_thumb;
+                resource = arm == Arm.LEFT ? R.drawable.left_double_tap : R.drawable.right_double_tap;
                 break;
             case REST:
                 resource = R.drawable.transparent_circle;
