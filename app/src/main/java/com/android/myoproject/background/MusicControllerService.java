@@ -39,6 +39,8 @@ public class MusicControllerService extends Service implements DeviceCallback {
     private static final float PITCH_THRESHOLD = 0.0f;
     private static final float YAW_THRESHOLD = 1.5f;
 
+    private static final int DOUBLE_TAP_DELAY_MS = 150;
+
     private static final int NOTIFICATION_ID = 50990;
 
     private boolean blockEverything = false;
@@ -95,7 +97,7 @@ public class MusicControllerService extends Service implements DeviceCallback {
         }
 
         hub.addListener(deviceListener);
-        hub.attachByMacAddress("FB:75:87:D3:FD:65");
+        hub.attachToAdjacentMyo();
 
         //Create an Intent for the BroadcastReceiver
         Intent buttonIntent = new Intent(this, ButtonReceiver.class);
@@ -227,7 +229,7 @@ public class MusicControllerService extends Service implements DeviceCallback {
                     playOrPause();
                 }
             }
-        }, 150);
+        }, DOUBLE_TAP_DELAY_MS);
     }
 
     @Override
@@ -239,8 +241,6 @@ public class MusicControllerService extends Service implements DeviceCallback {
         switch (pose) {
             case FINGERS_SPREAD:
                 delayUntilDTChecked();
-//                playOrPause();
-//                Toast.makeText(this, pose.name(), Toast.LENGTH_SHORT).show();
                 break;
             case FIST:
                 fistMade = true;
