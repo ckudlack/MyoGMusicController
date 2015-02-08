@@ -52,7 +52,7 @@ public class MainActivity extends Activity {
                     preferences.edit().putBoolean(Constants.NOTIFICATION_ACTIVE, true).apply();
                     startService(new Intent(MainActivity.this, MusicControllerService.class));
                 } else {
-                    Toast.makeText(MainActivity.this, "Myo Service already running. Hold button to override", Toast.LENGTH_LONG).show();
+                    Toast.makeText(MainActivity.this, getString(R.string.reset_scanning), Toast.LENGTH_LONG).show();
                 }
             }
         });

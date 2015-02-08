@@ -35,9 +35,9 @@ import java.util.List;
 
 public class MusicControllerService extends Service implements DeviceCallback {
 
-    private static float ROLL_THRESHOLD = 1.5f;
-    private static float PITCH_THRESHOLD = 0.0f;
-    private static float YAW_THRESHOLD = 1.5f;
+    private static final float ROLL_THRESHOLD = 1.5f;
+    private static final float PITCH_THRESHOLD = 0.0f;
+    private static final float YAW_THRESHOLD = 1.5f;
 
     private static final int NOTIFICATION_ID = 50990;
 
@@ -114,6 +114,7 @@ public class MusicControllerService extends Service implements DeviceCallback {
         manager.notify(NOTIFICATION_ID, builder.build());
 
         createCallback();
+
         try {
             createMediaController();
         } catch (SecurityException e) {

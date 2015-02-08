@@ -6,5 +6,7 @@
     <string name="action_settings">Settings</string>
     <string name="title_activity_start_service">StartServiceActivity</string>
     <string name="service_name">Myo App</string>
+    <string name="reset_scanning">Myo Service already running. Hold button to override</string>
+    <string name="arm_detected">Arm Detected</string>
 
 </resources>

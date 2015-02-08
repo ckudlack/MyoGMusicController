@@ -8,18 +8,10 @@ public class MyoApplication extends Application {
 
     public static Bus bus;
 
-    public static enum MusicField {
-        TRACK, ARTIST, ALBUM
-    }
-
     @Override
     public void onCreate() {
         super.onCreate();
 
         bus = new Bus();
-    }
-
-    public static Bus getBus() {
-        return bus;
     }
 }

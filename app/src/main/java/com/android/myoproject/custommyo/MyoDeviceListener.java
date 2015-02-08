@@ -3,6 +3,7 @@ package com.android.myoproject.custommyo;
 import android.content.Context;
 import android.widget.Toast;
 
+import com.android.myoproject.R;
 import com.android.myoproject.callbacks.DeviceCallback;
 import com.thalmic.myo.AbstractDeviceListener;
 import com.thalmic.myo.Arm;
@@ -50,7 +51,7 @@ public class MyoDeviceListener extends AbstractDeviceListener {
         myo.vibrate(Myo.VibrationType.SHORT);
         myo.vibrate(Myo.VibrationType.SHORT);
 
-        Toast.makeText(context, "Arm Detected", Toast.LENGTH_SHORT).show();
+        Toast.makeText(context, context.getString(R.string.arm_detected), Toast.LENGTH_SHORT).show();
 
         callback.toggleUnlocked(false);
         callback.resetFist();
