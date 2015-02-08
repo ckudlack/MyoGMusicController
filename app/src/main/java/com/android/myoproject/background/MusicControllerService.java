@@ -39,6 +39,8 @@ public class MusicControllerService extends Service implements DeviceCallback {
     private static final float PITCH_THRESHOLD = 0.0f;
     private static final float YAW_THRESHOLD = 1.5f;
 
+    private static final int DOUBLE_TAP_DELAY_MS = 150;
+
     private static final int NOTIFICATION_ID = 50990;
 
     private boolean blockEverything = false;
@@ -68,6 +70,8 @@ public class MusicControllerService extends Service implements DeviceCallback {
 
     private boolean isRolling = false;
     private boolean isYawing = false;
+
+    private boolean waitingForDT = false;
 
     public IBinder onBind(Intent intent) {
         return null;
@@ -196,6 +200,7 @@ public class MusicControllerService extends Service implements DeviceCallback {
     private void toggleLock() {
         if (currentMyo.isUnlocked()) {
             currentMyo.lock();
+            waitingForDT = false;
         }
     }
 
@@ -215,14 +220,27 @@ public class MusicControllerService extends Service implements DeviceCallback {
         }
     }
 
+    private void delayUntilDTChecked() {
+        waitingForDT = true;
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                if (waitingForDT) {
+                    playOrPause();
+                }
+            }
+        }, DOUBLE_TAP_DELAY_MS);
+    }
+
     @Override
     public void handlePose(Pose pose, Arm arm) {
         MyoApplication.bus.post(new BusEvent.GestureUpdatedEvent(pose, arm));
+        if (pose != Pose.DOUBLE_TAP && !currentMyo.isUnlocked()) {
+            return;
+        }
         switch (pose) {
             case FINGERS_SPREAD:
-                currentMyo.vibrate(Myo.VibrationType.SHORT);
-                playOrPause();
-                Toast.makeText(this, pose.name(), Toast.LENGTH_SHORT).show();
+                delayUntilDTChecked();
                 break;
             case FIST:
                 fistMade = true;
@@ -376,6 +394,8 @@ public class MusicControllerService extends Service implements DeviceCallback {
     }
 
     private void playOrPause() {
+        currentMyo.vibrate(Myo.VibrationType.SHORT);
+
         if (controller == null) {
             Intent pause = new Intent("com.android.music.musicservicecommand");
             pause.putExtra("command", "togglepause");
